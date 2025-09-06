@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const PrivacyPolicy = () => {
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+  const [searchParams] = useSearchParams();
+  const forWhom = searchParams.get('for') || 'myself';
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -57,82 +59,108 @@ const PrivacyPolicy = () => {
             />
             <div className="space-y-4 text-sm text-muted-foreground">
               <Label htmlFor="privacy-agreement" className="text-sm font-normal cursor-pointer leading-relaxed">
-                By checking this box you agree to be bound by this{" "}
-                <button
-                  type="button"
-                  className="text-primary underline hover:no-underline"
-                  onClick={() => window.open('/terms', '_blank')}
-                >
-                  Terms of Use
-                </button>
-                {" "}and you agree to our{" "}
-                <button
-                  type="button"
-                  className="text-primary underline hover:no-underline"
-                  onClick={() => window.open('/privacy', '_blank')}
-                >
-                  Privacy Policy
-                </button>
-                , and where your loved one is not legally able to agree to the{" "}
-                <button
-                  type="button"
-                  className="text-primary underline hover:no-underline"
-                  onClick={() => window.open('/terms', '_blank')}
-                >
-                  Terms of Use
-                </button>
-                {" "}and{" "}
-                <button
-                  type="button"
-                  className="text-primary underline hover:no-underline"
-                  onClick={() => window.open('/privacy', '_blank')}
-                >
-                  Privacy Policy
-                </button>
-                {" "}on their own behalf, you have the right, authority, and capacity to agree to the{" "}
-                <button
-                  type="button"
-                  className="text-primary underline hover:no-underline"
-                  onClick={() => window.open('/terms', '_blank')}
-                >
-                  Terms of Use
-                </button>
-                {" "}and{" "}
-                <button
-                  type="button"
-                  className="text-primary underline hover:no-underline"
-                  onClick={() => window.open('/privacy', '_blank')}
-                >
-                  Privacy Policy
-                </button>
-                {" "}on their behalf. You represent that one or more of the following is true:
+                {forWhom === 'myself' ? (
+                  <>
+                    By checking this box you agree to be bound by this{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/terms', '_blank')}
+                    >
+                      Terms of Use
+                    </button>
+                    {" "}and you agree to our{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/privacy', '_blank')}
+                    >
+                      Privacy Policy
+                    </button>
+                    . You consent to receiving recorded AI artificial voice calls from Aasha and confirm that you are the subscriber of the phone number where Aasha will call you.
+                  </>
+                ) : (
+                  <>
+                    By checking this box you agree to be bound by this{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/terms', '_blank')}
+                    >
+                      Terms of Use
+                    </button>
+                    {" "}and you agree to our{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/privacy', '_blank')}
+                    >
+                      Privacy Policy
+                    </button>
+                    , and where your loved one is not legally able to agree to the{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/terms', '_blank')}
+                    >
+                      Terms of Use
+                    </button>
+                    {" "}and{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/privacy', '_blank')}
+                    >
+                      Privacy Policy
+                    </button>
+                    {" "}on their own behalf, you have the right, authority, and capacity to agree to the{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/terms', '_blank')}
+                    >
+                      Terms of Use
+                    </button>
+                    {" "}and{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline hover:no-underline"
+                      onClick={() => window.open('/privacy', '_blank')}
+                    >
+                      Privacy Policy
+                    </button>
+                    {" "}on their behalf. You represent that one or more of the following is true:
+                  </>
+                )}
               </Label>
 
-              <ul className="space-y-3 ml-4">
-                <li className="flex items-start space-x-2">
-                  <span className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></span>
-                  <span>
-                    You are the subscriber of the phone number where Aasha will call your loved one, 
-                    and consent to the number receiving recorded AI artificial voice calls.
-                  </span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></span>
-                  <span>
-                    You are your loved one's legal guardian or agent with authority, or have power of 
-                    attorney, to provide consent on behalf of your loved one to receive recorded AI 
-                    artificial voice calls, and you provide such consent.
-                  </span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></span>
-                  <span>
-                    Your loved one is competent to provide consent to receive recorded artificial 
-                    voice AI calls and has provided such consent, which you are relaying to Aasha 
-                    Inc. with the approval of your loved one.
-                  </span>
-                </li>
-              </ul>
+              {forWhom === 'loved-one' && (
+                <ul className="space-y-3 ml-4">
+                  <li className="flex items-start space-x-2">
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></span>
+                    <span>
+                      You are the subscriber of the phone number where Aasha will call your loved one, 
+                      and consent to the number receiving recorded AI artificial voice calls.
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></span>
+                    <span>
+                      You are your loved one&apos;s legal guardian or agent with authority, or have power of 
+                      attorney, to provide consent on behalf of your loved one to receive recorded AI 
+                      artificial voice calls, and you provide such consent.
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></span>
+                    <span>
+                      Your loved one is competent to provide consent to receive recorded artificial 
+                      voice AI calls and has provided such consent, which you are relaying to Aasha 
+                      Inc. with the approval of your loved one.
+                    </span>
+                  </li>
+                </ul>
+              )}
             </div>
           </div>
         </Card>
@@ -151,7 +179,7 @@ const PrivacyPolicy = () => {
         <div className="text-center mt-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/personal-details')}
+            onClick={() => navigate(`/personal-details?for=${forWhom}`)}
             className="text-muted-foreground"
           >
             ← Back to Personal Details
