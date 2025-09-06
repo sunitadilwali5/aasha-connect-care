@@ -8,33 +8,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Warm, elderly-friendly color palette */
+    --background: 40 20% 97%;
+    --foreground: 25 15% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 40 25% 95%;
+    --card-foreground: 25 15% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 40 25% 95%;
+    --popover-foreground: 25 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Warm sage green primary */
+    --primary: 95 25% 45%;
+    --primary-foreground: 40 25% 95%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Soft cream secondary */
+    --secondary: 42 30% 88%;
+    --secondary-foreground: 25 15% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Warm muted tones */
+    --muted: 42 20% 90%;
+    --muted-foreground: 25 10% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Warm accent */
+    --accent: 35 35% 82%;
+    --accent-foreground: 25 15% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Gentle error colors */
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 40 25% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 42 25% 85%;
+    --input: 42 25% 92%;
+    --ring: 95 25% 45%;
+
+    /* Custom design tokens */
+    --warm-cream: 42 35% 92%;
+    --sage-light: 95 20% 75%;
+    --sage-dark: 95 30% 35%;
+    --terracotta: 20 55% 65%;
+    
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--warm-cream)), hsl(var(--accent)));
+    --gradient-sage: linear-gradient(135deg, hsl(var(--sage-light)), hsl(var(--primary)));
+    
+    /* Shadows */
+    --shadow-gentle: 0 4px 20px -8px hsl(var(--sage-dark) / 0.15);
+    --shadow-card: 0 8px 32px -12px hsl(var(--sage-dark) / 0.12);
+    
+    /* Typography */
+    --font-size-hero: 3rem;
+    --font-size-title: 2.25rem;
+    --font-size-subtitle: 1.125rem;
+    --font-size-body: 1.125rem;
 
     --radius: 0.5rem;
 

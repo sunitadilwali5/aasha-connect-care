@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Custom elderly-friendly colors
+        "warm-cream": "hsl(var(--warm-cream))",
+        "sage-light": "hsl(var(--sage-light))",
+        "sage-dark": "hsl(var(--sage-dark))",
+        "terracotta": "hsl(var(--terracotta))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
