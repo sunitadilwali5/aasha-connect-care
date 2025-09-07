@@ -199,6 +199,30 @@ const PersonalDetails = () => {
                 />
               </div>
 
+              {forWhom === 'loved-one' && (
+                <div>
+                  <Label htmlFor="relationship" className="text-base font-medium">Your Relationship</Label>
+                  <Select 
+                    value={lovedOneDetails.relationship} 
+                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, relationship: value }))}
+                  >
+                    <SelectTrigger className="text-lg py-3">
+                      <SelectValue placeholder="Select relationship" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="spouse">Spouse</SelectItem>
+                      <SelectItem value="child">Child</SelectItem>
+                      <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="sibling">Sibling</SelectItem>
+                      <SelectItem value="grandchild">Grandchild</SelectItem>
+                      <SelectItem value="grandparent">Grandparent</SelectItem>
+                      <SelectItem value="friend">Friend</SelectItem>
+                      <SelectItem value="caregiver">Caregiver</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="userEmail" className="text-base font-medium">Email Address</Label>
                 <Input
@@ -260,28 +284,6 @@ const PersonalDetails = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="relationship" className="text-base font-medium">Your Relationship</Label>
-                  <Select 
-                    value={lovedOneDetails.relationship} 
-                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, relationship: value }))}
-                  >
-                    <SelectTrigger className="text-lg py-3">
-                      <SelectValue placeholder="Select relationship" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="spouse">Spouse</SelectItem>
-                      <SelectItem value="child">Child</SelectItem>
-                      <SelectItem value="parent">Parent</SelectItem>
-                      <SelectItem value="sibling">Sibling</SelectItem>
-                      <SelectItem value="grandchild">Grandchild</SelectItem>
-                      <SelectItem value="grandparent">Grandparent</SelectItem>
-                      <SelectItem value="friend">Friend</SelectItem>
-                      <SelectItem value="caregiver">Caregiver</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 {forWhom === 'loved-one' && (
                   <div className="bg-terracotta/10 p-4 rounded-lg">
