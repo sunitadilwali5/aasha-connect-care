@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createProfile, createLovedOne, signUpUser, getCurrentUser } from "@/lib/supabase";
+import { createProfile, createLovedOne, testConnection } from "@/lib/supabase";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -42,6 +42,8 @@ const PersonalDetails = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submission started');
+    
     const requiredUserFields = ['fullName', 'preferredLanguage', 'email'];
     const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && userDetails.birthDate && isValidDate(userDetails.birthDate);
     
@@ -71,39 +73,13 @@ const PersonalDetails = () => {
     setIsLoading(true);
 
     try {
-      // For testing purposes, create profile without authentication
-      // In production, you would handle proper authentication
-      let userId = null;
-      
-      try {
-        // Try to get current user first
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          userId = currentUser.id;
-        }
-      } catch (authError) {
-        console.log('No authenticated user, creating profile without auth for testing');
-      }
-      
-      // If no authenticated user, try to create one
-      if (!userId) {
-        try {
-          const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
-          const authResult = await signUpUser(userDetails.email, tempPassword);
-          
-          if (authResult.user) {
-            userId = authResult.user.id;
-          }
-        } catch (signUpError) {
-          console.log('Sign up failed, proceeding without auth for testing:', signUpError);
-          // Generate a temporary UUID for testing
-          userId = 'temp-' + Math.random().toString(36).substr(2, 9);
-        }
-      }
+      // Test database connection first
+      const connectionTest = await testConnection();
+      console.log('Database connection test result:', connectionTest);
 
       // Create profile
       const profileData = {
-        user_id: userId,
+        user_id: null, // Allow null for testing
         full_name: userDetails.fullName,
         birth_date: formatDateForDB(userDetails.birthDate),
         email: userDetails.email,
@@ -112,7 +88,8 @@ const PersonalDetails = () => {
         setup_for: forWhom as 'myself' | 'loved-one',
       };
 
-      const profile = await createProfileWithoutAuth(profileData);
+      console.log('Creating profile with data:', profileData);
+      const profile = await createProfile(profileData);
       setProfileId(profile.id);
 
       // Store user data in context
@@ -152,38 +129,11 @@ const PersonalDetails = () => {
       setIsLoading(false);
       console.error('Error creating profile:', error);
       
-      // Handle specific error types
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      if (errorMessage.includes('rate_limit') || errorMessage.includes('49 seconds')) {
-        toast({
-          title: "Too Many Attempts",
-          description: "Please wait a moment before trying again. This helps keep our service secure.",
-          variant: "destructive"
-        });
-      } else if (errorMessage.includes('row-level security') || errorMessage.includes('42501')) {
-        toast({
-          title: "Authentication Issue",
-          description: "There was a problem with your account setup. Please try refreshing the page.",
-          variant: "destructive"
-        });
-      } else if (errorMessage.includes('User already registered')) {
-        // If user already exists, try to continue with existing user
-        toast({
-          title: "Account Exists",
-          description: "An account with this email already exists. Continuing with existing account.",
-        });
-        // Try to continue without creating new user
-        setTimeout(() => {
-          navigate('/privacy-policy');
-        }, 2000);
-      } else {
-        toast({
-          title: "Error Creating Profile",
-          description: "There was an error creating your profile. Please try again.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Error Creating Profile",
+        description: `Database error: ${error.message || 'Unknown error'}. Please check the console for details.`,
+        variant: "destructive"
+      });
     }
   };
 

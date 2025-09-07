@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { createPayment } from "@/lib/supabase";
 
 const Payment = () => {
   const [paymentDetails, setPaymentDetails] = useState({
@@ -43,25 +44,23 @@ const Payment = () => {
     setIsLoading(true);
 
     try {
-      // Here you would integrate with actual payment processing
-      // For now, we'll simulate successful payment
-      
-      // You could create a payment record in Supabase here
-      // const paymentData = {
-      //   profile_id: profileId,
-      //   amount: 9.99,
-      //   payment_method: 'card',
-      //   status: 'completed'
-      // };
-      
-      console.log('Processing payment for profile:', profileId);
-      console.log('User data:', userData);
-      console.log('Loved one data:', lovedOneData);
+      // Create payment record in database
+      if (profileId) {
+        const paymentData = {
+          profile_id: profileId,
+          amount: 9.99,
+          payment_method: 'card',
+          status: 'completed'
+        };
+        
+        await createPayment(paymentData);
+        console.log('Payment record created successfully');
+      }
       
       setIsLoading(false);
       toast({
-        title: "Welcome to Meela! 🎉",
-        description: "Your payment was successful. You'll receive a call from Meela within 24 hours.",
+        title: "Welcome to Aasha! 🎉",
+        description: "Your payment was successful. You'll receive a call from Aasha within 24 hours.",
       });
       navigate('/welcome-success');
     } catch (error) {

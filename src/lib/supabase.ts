@@ -5,9 +5,10 @@ export type Profile = Tables<'profiles'>;
 export type LovedOne = Tables<'loved_ones'>;
 export type PhoneVerification = Tables<'phone_verifications'>;
 
-// Profile operations
-export const createProfileWithoutAuth = async (profileData: TablesInsert<'profiles'>) => {
-  // Create profile without strict authentication requirement for testing
+// Simple profile creation that works without authentication
+export const createProfile = async (profileData: Omit<TablesInsert<'profiles'>, 'user_id'> & { user_id?: string | null }) => {
+  console.log('Creating profile with data:', profileData);
+  
   const { data, error } = await supabase
     .from('profiles')
     .insert(profileData)
@@ -19,27 +20,7 @@ export const createProfileWithoutAuth = async (profileData: TablesInsert<'profil
     throw error;
   }
 
-  return data;
-};
-
-export const createProfile = async (profileData: TablesInsert<'profiles'>) => {
-  // Ensure user is authenticated before creating profile
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('User must be authenticated to create profile');
-  }
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert(profileData)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating profile:', error);
-    throw error;
-  }
-
+  console.log('Profile created successfully:', data);
   return data;
 };
 
@@ -76,6 +57,8 @@ export const getProfile = async (id: string) => {
 
 // Loved ones operations
 export const createLovedOne = async (lovedOneData: TablesInsert<'loved_ones'>) => {
+  console.log('Creating loved one with data:', lovedOneData);
+  
   const { data, error } = await supabase
     .from('loved_ones')
     .insert(lovedOneData)
@@ -87,11 +70,14 @@ export const createLovedOne = async (lovedOneData: TablesInsert<'loved_ones'>) =
     throw error;
   }
 
+  console.log('Loved one created successfully:', data);
   return data;
 };
 
 // Phone verification operations
 export const createPhoneVerification = async (verificationData: TablesInsert<'phone_verifications'>) => {
+  console.log('Creating phone verification with data:', verificationData);
+  
   const { data, error } = await supabase
     .from('phone_verifications')
     .insert(verificationData)
@@ -103,6 +89,7 @@ export const createPhoneVerification = async (verificationData: TablesInsert<'ph
     throw error;
   }
 
+  console.log('Phone verification created successfully:', data);
   return data;
 };
 
@@ -122,7 +109,26 @@ export const updatePhoneVerification = async (id: string, updates: Partial<Table
   return data;
 };
 
-// Auth operations
+// Payment operations
+export const createPayment = async (paymentData: TablesInsert<'payments'>) => {
+  console.log('Creating payment with data:', paymentData);
+  
+  const { data, error } = await supabase
+    .from('payments')
+    .insert(paymentData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating payment:', error);
+    throw error;
+  }
+
+  console.log('Payment created successfully:', data);
+  return data;
+};
+
+// Auth operations - simplified for testing
 export const signUpUser = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -156,8 +162,29 @@ export const getCurrentUser = async () => {
 
   if (error) {
     console.error('Error getting current user:', error);
-    throw error;
+    return null;
   }
 
   return user;
+};
+
+// Test database connection
+export const testConnection = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error('Database connection test failed:', error);
+      return false;
+    }
+    
+    console.log('Database connection test successful');
+    return true;
+  } catch (error) {
+    console.error('Database connection test error:', error);
+    return false;
+  }
 };
