@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface UserData {
   fullName: string;
-  birthDate: string;
-  preferredLanguage: string;
   email: string;
   phone?: string;
   setupFor: 'myself' | 'loved-one';

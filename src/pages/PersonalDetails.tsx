@@ -24,8 +24,6 @@ const PersonalDetails = () => {
   // User details
   const [userDetails, setUserDetails] = useState({
     fullName: "",
-    birthDate: "",
-    preferredLanguage: "",
     email: ""
   });
 
@@ -44,13 +42,13 @@ const PersonalDetails = () => {
     
     console.log('Form submission started');
     
-    const requiredUserFields = ['fullName', 'preferredLanguage', 'email'];
-    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && userDetails.birthDate && isValidDate(userDetails.birthDate);
+    const requiredUserFields = ['fullName', 'email'];
+    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
     
     if (!userValid) {
       toast({
         title: "Required Information Missing",
-        description: "Please fill in all your personal details with a valid birth date (MM/DD/YYYY).",
+        description: "Please fill in all your personal details.",
         variant: "destructive"
       });
       return;
@@ -81,9 +79,9 @@ const PersonalDetails = () => {
       const profileData = {
         user_id: null, // Allow null for testing
         full_name: userDetails.fullName,
-        birth_date: formatDateForDB(userDetails.birthDate),
+        birth_date: null,
         email: userDetails.email,
-        preferred_language: userDetails.preferredLanguage,
+        preferred_language: null,
         phone: contextPhoneNumber,
         setup_for: forWhom as 'myself' | 'loved-one',
       };
@@ -199,38 +197,6 @@ const PersonalDetails = () => {
                   className="text-lg py-3"
                   required
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="userBirthDate" className="text-base font-medium">Birth Date</Label>
-                <Input
-                  id="userBirthDate"
-                  value={userDetails.birthDate}
-                  onChange={(e) => {
-                    const formatted = formatDateInput(e.target.value);
-                    setUserDetails(prev => ({ ...prev, birthDate: formatted }));
-                  }}
-                  placeholder="MM/DD/YYYY"
-                  className="text-lg py-3"
-                  maxLength={10}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="preferredLanguage" className="text-base font-medium">Preferred Language</Label>
-                <Select 
-                  value={userDetails.preferredLanguage} 
-                  onValueChange={(value) => setUserDetails(prev => ({ ...prev, preferredLanguage: value }))}
-                >
-                  <SelectTrigger className="text-lg py-3">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border shadow-lg z-50">
-                    <SelectItem value="english">English</SelectItem>
-                    <SelectItem value="hindi">Hindi</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div>
