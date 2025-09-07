@@ -74,13 +74,23 @@ const PersonalDetails = () => {
     
     console.log('Form submission started');
     
-    const requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage'];
-    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
+    let requiredUserFields: string[];
+    let userValid: boolean;
     
-    if (!userValid || !isValidDate(userDetails.birthDate)) {
+    if (forWhom === 'myself') {
+      requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage'];
+      userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && isValidDate(userDetails.birthDate);
+    } else {
+      requiredUserFields = ['fullName', 'email', 'relationship'];
+      userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
+    }
+    
+    if (!userValid) {
       toast({
         title: "Required Information Missing",
-        description: "Please fill in all your personal details with a valid birth date (MM/DD/YYYY).",
+        description: forWhom === 'myself' 
+          ? "Please fill in all your personal details with a valid birth date (MM/DD/YYYY)."
+          : "Please fill in all required fields including your relationship to your loved one.",
         variant: "destructive"
       });
       return;
@@ -113,9 +123,9 @@ const PersonalDetails = () => {
       const profileData = {
         user_id: null, // Allow null for testing
         full_name: userDetails.fullName,
-        birth_date: formatDateForDB(userDetails.birthDate),
+        birth_date: forWhom === 'myself' ? formatDateForDB(userDetails.birthDate) : null,
         email: userDetails.email,
-        preferred_language: userDetails.preferredLanguage,
+        preferred_language: forWhom === 'myself' ? userDetails.preferredLanguage : null,
         phone: contextPhoneNumber || null,
         setup_for: forWhom as 'myself' | 'loved-one',
       };
@@ -217,38 +227,41 @@ const PersonalDetails = () => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="userBirthDate" className="text-base font-medium">Date of Birth</Label>
-                <Input
-                  id="userBirthDate"
-                  value={userDetails.birthDate}
-                  onChange={(e) => {
-                    const formatted = formatDateInput(e.target.value);
-                    setUserDetails(prev => ({ ...prev, birthDate: formatted }));
-                  }}
-                  placeholder="MM/DD/YYYY"
-                  className="text-lg py-3"
-                  maxLength={10}
-                  required
-                />
-              </div>
+              {forWhom === 'myself' && (
+                <>
+                  <div>
+                    <Label htmlFor="userBirthDate" className="text-base font-medium">Date of Birth</Label>
+                    <Input
+                      id="userBirthDate"
+                      value={userDetails.birthDate}
+                      onChange={(e) => {
+                        const formatted = formatDateInput(e.target.value);
+                        setUserDetails(prev => ({ ...prev, birthDate: formatted }));
+                      }}
+                      placeholder="MM/DD/YYYY"
+                      className="text-lg py-3"
+                      maxLength={10}
+                      required
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="userLanguage" className="text-base font-medium">Language Preference</Label>
-                <Select 
-                  value={userDetails.preferredLanguage} 
-                  onValueChange={(value) => setUserDetails(prev => ({ ...prev, preferredLanguage: value }))}
-                >
-                  <SelectTrigger className="text-lg py-3">
-                    <SelectValue placeholder="Select your preferred language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="english">English</SelectItem>
-                    <SelectItem value="hindi">Hindi</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+                  <div>
+                    <Label htmlFor="userLanguage" className="text-base font-medium">Language Preference</Label>
+                    <Select 
+                      value={userDetails.preferredLanguage} 
+                      onValueChange={(value) => setUserDetails(prev => ({ ...prev, preferredLanguage: value }))}
+                    >
+                      <SelectTrigger className="text-lg py-3">
+                        <SelectValue placeholder="Select your preferred language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="english">English</SelectItem>
+                        <SelectItem value="hindi">Hindi</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
               <div>
                 <Label htmlFor="userPhone" className="text-base font-medium">Phone Number</Label>
                 <div className="space-y-3">
@@ -265,21 +278,6 @@ const PersonalDetails = () => {
                   </div>
                 </div>
               </div>
-
-              {forWhom === 'loved-one' && (
-                <div>
-                  <Label htmlFor="caregiverPhone" className="text-base font-medium">Phone Number</Label>
-                  <Input
-                    id="caregiverPhone"
-                    type="tel"
-                    value={contextPhoneNumber || ''}
-                    placeholder="+1 (555) 123-4567"
-                    className="text-lg py-3"
-                    disabled={true}
-                    required
-                  />
-                </div>
-              )}
 
               {forWhom === 'loved-one' && (
                 <div>
