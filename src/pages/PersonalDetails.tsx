@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -16,8 +21,7 @@ const PersonalDetails = () => {
   // User details
   const [userDetails, setUserDetails] = useState({
     fullName: "",
-    birthMonth: "",
-    birthDay: "",
+    birthDate: null as Date | null,
     preferredLanguage: "",
     email: ""
   });
@@ -26,8 +30,7 @@ const PersonalDetails = () => {
   const [lovedOneDetails, setLovedOneDetails] = useState({
     fullName: "",
     phoneNumber: "",
-    birthMonth: "",
-    birthDay: "",
+    birthDate: null as Date | null,
     relationship: ""
   });
 
@@ -36,8 +39,8 @@ const PersonalDetails = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const requiredUserFields = ['fullName', 'birthMonth', 'birthDay', 'preferredLanguage', 'email'];
-    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
+    const requiredUserFields = ['fullName', 'preferredLanguage', 'email'];
+    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && userDetails.birthDate;
     
     if (!userValid) {
       toast({
@@ -49,8 +52,8 @@ const PersonalDetails = () => {
     }
 
     if (forWhom === 'loved-one') {
-      const requiredLovedOneFields = ['fullName', 'phoneNumber', 'birthMonth', 'birthDay', 'relationship'];
-      const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]);
+      const requiredLovedOneFields = ['fullName', 'phoneNumber', 'relationship'];
+      const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]) && lovedOneDetails.birthDate;
       
       if (!lovedOneValid) {
         toast({
@@ -79,12 +82,6 @@ const PersonalDetails = () => {
     }, 2000);
   };
 
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-warm-cream p-4">
@@ -116,39 +113,34 @@ const PersonalDetails = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="userBirthMonth" className="text-base font-medium">Birth Month</Label>
-                  <Select 
-                    value={userDetails.birthMonth} 
-                    onValueChange={(value) => setUserDetails(prev => ({ ...prev, birthMonth: value }))}
-                  >
-                    <SelectTrigger className="text-lg py-3">
-                      <SelectValue placeholder="Select month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {months.map((month) => (
-                        <SelectItem key={month} value={month}>{month}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="userBirthDay" className="text-base font-medium">Birth Day</Label>
-                  <Select 
-                    value={userDetails.birthDay} 
-                    onValueChange={(value) => setUserDetails(prev => ({ ...prev, birthDay: value }))}
-                  >
-                    <SelectTrigger className="text-lg py-3">
-                      <SelectValue placeholder="Select day" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {days.map((day) => (
-                        <SelectItem key={day} value={day}>{day}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label htmlFor="userBirthDate" className="text-base font-medium">Birth Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal text-lg py-3",
+                        !userDetails.birthDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {userDetails.birthDate ? format(userDetails.birthDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={userDetails.birthDate || undefined}
+                      onSelect={(date) => setUserDetails(prev => ({ ...prev, birthDate: date || null }))}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div>
@@ -213,39 +205,34 @@ const PersonalDetails = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="lovedOneBirthMonth" className="text-base font-medium">Birth Month</Label>
-                    <Select 
-                      value={lovedOneDetails.birthMonth} 
-                      onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, birthMonth: value }))}
-                    >
-                      <SelectTrigger className="text-lg py-3">
-                        <SelectValue placeholder="Select month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month) => (
-                          <SelectItem key={month} value={month}>{month}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="lovedOneBirthDay" className="text-base font-medium">Birth Day</Label>
-                    <Select 
-                      value={lovedOneDetails.birthDay} 
-                      onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, birthDay: value }))}
-                    >
-                      <SelectTrigger className="text-lg py-3">
-                        <SelectValue placeholder="Select day" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {days.map((day) => (
-                          <SelectItem key={day} value={day}>{day}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label htmlFor="lovedOneBirthDate" className="text-base font-medium">Birth Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal text-lg py-3",
+                          !lovedOneDetails.birthDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {lovedOneDetails.birthDate ? format(lovedOneDetails.birthDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={lovedOneDetails.birthDate || undefined}
+                        onSelect={(date) => setLovedOneDetails(prev => ({ ...prev, birthDate: date || null }))}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div>
