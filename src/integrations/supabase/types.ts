@@ -14,54 +14,168 @@ export type Database = {
   }
   public: {
     Tables: {
-      form_submissions: {
+      loved_ones: {
         Row: {
-          age: number | null
-          consent: boolean
-          country: string | null
-          created_at: string | null
-          email: string
-          hear_about_us: string | null
+          birth_date: string | null
+          created_at: string
+          full_name: string
           id: string
-          message: string
-          name: string
-          password: string | null
           phone: string | null
-          preferred_language: string | null
-          submitted_at: string | null
-          user_name: string
+          profile_id: string
+          relationship: string | null
+          updated_at: string
         }
         Insert: {
-          age?: number | null
-          consent?: boolean
-          country?: string | null
-          created_at?: string | null
-          email: string
-          hear_about_us?: string | null
-          id: string
-          message: string
-          name: string
-          password?: string | null
+          birth_date?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
           phone?: string | null
-          preferred_language?: string | null
-          submitted_at?: string | null
-          user_name: string
+          profile_id: string
+          relationship?: string | null
+          updated_at?: string
         }
         Update: {
-          age?: number | null
-          consent?: boolean
-          country?: string | null
-          created_at?: string | null
-          email?: string
-          hear_about_us?: string | null
+          birth_date?: string | null
+          created_at?: string
+          full_name?: string
           id?: string
-          message?: string
-          name?: string
-          password?: string | null
+          phone?: string | null
+          profile_id?: string
+          relationship?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loved_ones_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number | null
+          created_at: string
+          id: string
+          payment_method: string | null
+          profile_id: string
+          status: string | null
+          stripe_payment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          profile_id: string
+          status?: string | null
+          stripe_payment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          profile_id?: string
+          status?: string | null
+          stripe_payment_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phone_verifications: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          otp_code: string | null
+          phone: string
+          profile_id: string
+          updated_at: string
+          verification_attempts: number | null
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          otp_code?: string | null
+          phone: string
+          profile_id: string
+          updated_at?: string
+          verification_attempts?: number | null
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          otp_code?: string | null
+          phone?: string
+          profile_id?: string
+          updated_at?: string
+          verification_attempts?: number | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_verifications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          birth_date: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          preferred_language: string | null
+          setup_for: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
           phone?: string | null
           preferred_language?: string | null
-          submitted_at?: string | null
-          user_name?: string
+          setup_for?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          preferred_language?: string | null
+          setup_for?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
