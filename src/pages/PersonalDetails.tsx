@@ -240,23 +240,12 @@ const PersonalDetails = () => {
                     <Input
                       id="userPhone"
                       type="tel"
-                      value={userDetails.phoneNumber}
-                      onChange={(e) => setUserDetails(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      value={contextPhoneNumber || ''}
                       placeholder="+1 (555) 123-4567"
                       className="text-lg py-3 flex-1"
-                      disabled={phoneVerificationStep === 'verified'}
+                      disabled={true}
                       required
                     />
-                    {phoneVerificationStep === 'input' && (
-                      <Button
-                        type="button"
-                        onClick={handleSendPhoneOTP}
-                        disabled={!userDetails.phoneNumber || isVerifyingPhone}
-                        className="whitespace-nowrap"
-                      >
-                        {isVerifyingPhone ? "Sending..." : "Send OTP"}
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
