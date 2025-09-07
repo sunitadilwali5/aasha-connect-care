@@ -129,6 +129,21 @@ const PersonalDetails = () => {
       const profile = await createProfile(profileData);
       setProfileId(profile.id);
 
+      // Create phone verification record for profile
+      if (contextPhoneNumber) {
+        const phoneVerificationData = {
+          profile_id: profile.id,
+          phone: contextPhoneNumber,
+          verified: true, // Since OTP was already verified
+          otp_code: null,
+          expires_at: null,
+          verification_attempts: 1
+        };
+        
+        await createPhoneVerification(phoneVerificationData);
+        console.log('Phone verification record created for profile');
+      }
+
       // Store user data in context
       setUserData({
         ...userDetails,
@@ -179,6 +194,21 @@ const PersonalDetails = () => {
     } catch (error) {
       setIsLoading(false);
       console.error('Error creating profile:', error);
+
+      // Create phone verification record for caregiver
+      if (contextPhoneNumber) {
+        const phoneVerificationData = {
+          caregiver_id: caregiver.id,
+          phone: contextPhoneNumber,
+          verified: true, // Since OTP was already verified
+          otp_code: null,
+          expires_at: null,
+          verification_attempts: 1
+        };
+        
+        await createPhoneVerification(phoneVerificationData);
+        console.log('Phone verification record created for caregiver');
+      }
       
       toast({
         title: "Error Creating Profile",

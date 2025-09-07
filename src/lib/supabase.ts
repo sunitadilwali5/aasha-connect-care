@@ -75,7 +75,7 @@ export const createCaregiver = async (caregiverData: TablesInsert<'caregivers'>)
 };
 
 // Phone verification operations
-export const createPhoneVerification = async (verificationData: TablesInsert<'phone_verifications'>) => {
+export const createPhoneVerification = async (verificationData: Partial<TablesInsert<'phone_verifications'>>) => {
   console.log('Creating phone verification with data:', verificationData);
   
   const { data, error } = await supabase
