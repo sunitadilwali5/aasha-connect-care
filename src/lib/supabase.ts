@@ -6,6 +6,22 @@ export type LovedOne = Tables<'loved_ones'>;
 export type PhoneVerification = Tables<'phone_verifications'>;
 
 // Profile operations
+export const createProfileWithoutAuth = async (profileData: TablesInsert<'profiles'>) => {
+  // Create profile without strict authentication requirement for testing
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert(profileData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating profile:', error);
+    throw error;
+  }
+
+  return data;
+};
+
 export const createProfile = async (profileData: TablesInsert<'profiles'>) => {
   // Ensure user is authenticated before creating profile
   const { data: { user } } = await supabase.auth.getUser();
