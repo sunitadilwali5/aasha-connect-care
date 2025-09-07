@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createProfile, createLovedOne, createCaregiver, testConnection, createPhoneVerification } from "@/lib/supabase";
+import { createProfile, createLovedOne, createCaregiver, testConnection, createPhoneVerification, updateProfile } from "@/lib/supabase";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -74,6 +74,8 @@ const PersonalDetails = () => {
     e.preventDefault();
     
     console.log('Form submission started');
+    
+    let caregiver: any = null;
     
     if (forWhom === 'myself') {
       const requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage'];
@@ -178,7 +180,7 @@ const PersonalDetails = () => {
           loved_one_id: lovedOneProfile.id,
         };
 
-        const caregiver = await createCaregiver(caregiverRecord);
+        caregiver = await createCaregiver(caregiverRecord);
         
         // Update the loved one profile with caregiver reference
         await updateProfile(lovedOneProfile.id, { caregiver_id: caregiver.id });
@@ -196,7 +198,7 @@ const PersonalDetails = () => {
       console.error('Error creating profile:', error);
 
       // Create phone verification record for caregiver
-      if (contextPhoneNumber) {
+      if (contextPhoneNumber && caregiver) {
         const phoneVerificationData = {
           caregiver_id: caregiver.id,
           phone: contextPhoneNumber,
