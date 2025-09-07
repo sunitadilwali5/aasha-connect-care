@@ -26,15 +26,8 @@ const PersonalDetails = () => {
     fullName: "",
     email: "",
     birthDate: "",
-    preferredLanguage: "",
-    phoneNumber: ""
+    preferredLanguage: ""
   });
-
-  // Phone verification state
-  const [phoneVerificationStep, setPhoneVerificationStep] = useState<'input' | 'verify' | 'verified'>('input');
-  const [otpCode, setOtpCode] = useState("");
-  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
-  const [verificationId, setVerificationId] = useState<string | null>(null);
 
   // Loved one details (if applicable)
   const [lovedOneDetails, setLovedOneDetails] = useState({
@@ -75,113 +68,18 @@ const PersonalDetails = () => {
            year <= new Date().getFullYear();
   };
 
-  const handleSendPhoneOTP = async () => {
-    if (!userDetails.phoneNumber) {
-      toast({
-        title: "Phone Number Required",
-        description: "Please enter your phone number first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsVerifyingPhone(true);
-    
-    try {
-      // Create a verification record in the existing phone_verifications table
-      const verificationData = {
-        profile_id: profileId || 'temp-profile-id', // Use actual profile ID or temp
-        phone: userDetails.phoneNumber,
-        otp_code: '123456', // For testing
-        verified: false,
-        verification_attempts: 0,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes from now
-      };
-      
-      // Create verification record in database
-      const verification = await createPhoneVerification(verificationData);
-      setVerificationId(verification.id);
-      
-      console.log('Sending OTP to:', userDetails.phoneNumber);
-      
-      setPhoneVerificationStep('verify');
-      setIsVerifyingPhone(false);
-      
-      toast({
-        title: "OTP Sent",
-        description: "For testing, use OTP: 123456",
-      });
-    } catch (error) {
-      setIsVerifyingPhone(false);
-      console.error('Error sending OTP:', error);
-      toast({
-        title: "Error Sending OTP",
-        description: "Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleVerifyPhoneOTP = async () => {
-    if (!otpCode || otpCode.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the 6-digit OTP code.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // For testing, accept 123456 as valid OTP
-    if (otpCode !== '123456') {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the correct OTP. For testing, use: 123456",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Update verification record to mark as verified
-      if (verificationId) {
-        await updatePhoneVerification(verificationId, {
-          verified: true,
-          verification_attempts: 1
-        });
-      }
-    } catch (error) {
-      console.error('Error updating verification:', error);
-    }
-
-    setPhoneVerificationStep('verified');
-    toast({
-      title: "Phone Verified",
-      description: "Your phone number has been verified successfully.",
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     console.log('Form submission started');
     
-    const requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage', 'phoneNumber'];
+    const requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage'];
     const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
     
     if (!userValid || !isValidDate(userDetails.birthDate)) {
       toast({
         title: "Required Information Missing",
-        description: "Please fill in all your personal details with a valid birth date.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (phoneVerificationStep !== 'verified') {
-      toast({
-        title: "Phone Verification Required",
-        description: "Please verify your phone number before continuing.",
+        description: "Please fill in all your personal details with a valid birth date (MM/DD/YYYY).",
         variant: "destructive"
       });
       return;
@@ -215,7 +113,7 @@ const PersonalDetails = () => {
         birth_date: formatDateForDB(userDetails.birthDate),
         email: userDetails.email,
         preferred_language: userDetails.preferredLanguage,
-        phone: userDetails.phoneNumber,
+        phone: contextPhoneNumber || null,
         setup_for: forWhom as 'myself' | 'loved-one',
       };
 
@@ -226,7 +124,7 @@ const PersonalDetails = () => {
       // Store user data in context
       setUserData({
         ...userDetails,
-        phone: userDetails.phoneNumber,
+        phone: contextPhoneNumber || undefined,
         setupFor: forWhom as 'myself' | 'loved-one',
       });
 
@@ -359,63 +257,6 @@ const PersonalDetails = () => {
                         {isVerifyingPhone ? "Sending..." : "Send OTP"}
                       </Button>
                     )}
-                    {phoneVerificationStep === 'verified' && (
-                      <div className="flex items-center text-green-600 font-medium">
-                        ✓ Verified
-                      </div>
-                    )}
-                  </div>
-                  
-                  {phoneVerificationStep === 'verify' && (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input
-                          value={otpCode}
-                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          placeholder="Enter 6-digit OTP"
-                          className="text-lg py-3 flex-1"
-                          maxLength={6}
-                        />
-                        <Button
-                          type="button"
-                          onClick={handleVerifyPhoneOTP}
-                          disabled={otpCode.length !== 6}
-                        >
-                          Verify
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Enter the 6-digit code sent to your phone. For testing, use: 123456
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {forWhom === 'loved-one' && (
-                <div>
-                  <Label htmlFor="relationship" className="text-base font-medium">Your Relationship</Label>
-                  <Select 
-                    value={lovedOneDetails.relationship} 
-                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, relationship: value }))}
-                  >
-                    <SelectTrigger className="text-lg py-3">
-                      <SelectValue placeholder="Select relationship" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="spouse">Spouse</SelectItem>
-                      <SelectItem value="child">Child</SelectItem>
-                      <SelectItem value="parent">Parent</SelectItem>
-                      <SelectItem value="sibling">Sibling</SelectItem>
-                      <SelectItem value="grandchild">Grandchild</SelectItem>
-                      <SelectItem value="grandparent">Grandparent</SelectItem>
-                      <SelectItem value="friend">Friend</SelectItem>
-                      <SelectItem value="caregiver">Caregiver</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
               <div>
                 <Label htmlFor="userEmail" className="text-base font-medium">Email Address</Label>
                 <Input
