@@ -172,7 +172,7 @@ const PrivacyPolicy = () => {
           </div>
           <div className="space-y-1">
             <span className="text-2xl font-light text-muted-foreground line-through">$29.95</span>
-            <span className="text-3xl font-medium text-sage-dark ml-2">$9.99/month</span>
+            <span className="text-3xl font-medium text-sage-dark ml-2">$19.95/month</span>
           </div>
         </div>
 
