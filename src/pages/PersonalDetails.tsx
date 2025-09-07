@@ -257,6 +257,10 @@ const PersonalDetails = () => {
                         {isVerifyingPhone ? "Sending..." : "Send OTP"}
                       </Button>
                     )}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="userEmail" className="text-base font-medium">Email Address</Label>
                 <Input
@@ -318,6 +322,25 @@ const PersonalDetails = () => {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="relationship" className="text-base font-medium">Relationship</Label>
+                  <Select 
+                    value={lovedOneDetails.relationship} 
+                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, relationship: value }))}
+                  >
+                    <SelectTrigger className="text-lg py-3">
+                      <SelectValue placeholder="Select your relationship" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="grandparent">Grandparent</SelectItem>
+                      <SelectItem value="spouse">Spouse</SelectItem>
+                      <SelectItem value="sibling">Sibling</SelectItem>
+                      <SelectItem value="friend">Friend</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {forWhom === 'loved-one' && (
                   <div className="bg-terracotta/10 p-4 rounded-lg">
