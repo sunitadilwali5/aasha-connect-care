@@ -4,6 +4,8 @@ interface UserData {
   fullName: string;
   email: string;
   phone?: string;
+  birthDate?: string;
+  preferredLanguage?: string;
   setupFor: 'myself' | 'loved-one';
 }
 

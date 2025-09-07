@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createProfile, createLovedOne, testConnection } from "@/lib/supabase";
+import { createProfile, createLovedOne, testConnection, createPhoneVerification } from "@/lib/supabase";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -24,8 +24,17 @@ const PersonalDetails = () => {
   // User details
   const [userDetails, setUserDetails] = useState({
     fullName: "",
-    email: ""
+    email: "",
+    birthDate: "",
+    preferredLanguage: "",
+    phoneNumber: ""
   });
+
+  // Phone verification state
+  const [phoneVerificationStep, setPhoneVerificationStep] = useState<'input' | 'verify' | 'verified'>('input');
+  const [otpCode, setOtpCode] = useState("");
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+  const [verificationId, setVerificationId] = useState<string | null>(null);
 
   // Loved one details (if applicable)
   const [lovedOneDetails, setLovedOneDetails] = useState({
@@ -37,18 +46,127 @@ const PersonalDetails = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const formatDateInput = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as MM/DD/YYYY
+    if (digits.length >= 8) {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    } else if (digits.length >= 4) {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    } else if (digits.length >= 2) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    return digits;
+  };
+
+  const isValidDate = (dateString: string) => {
+    const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
+    if (!regex.test(dateString)) return false;
+    
+    const [month, day, year] = dateString.split('/').map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    return date.getFullYear() === year &&
+           date.getMonth() === month - 1 &&
+           date.getDate() === day &&
+           year >= 1900 &&
+           year <= new Date().getFullYear();
+  };
+
+  const handleSendPhoneOTP = async () => {
+    if (!userDetails.phoneNumber) {
+      toast({
+        title: "Phone Number Required",
+        description: "Please enter your phone number first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsVerifyingPhone(true);
+    
+    try {
+      // For testing, we'll create a verification record
+      const verificationData = {
+        profile_id: 'temp-id', // We'll update this later
+        phone: userDetails.phoneNumber,
+        otp_code: '123456', // For testing
+        verified: false,
+        verification_attempts: 0,
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes from now
+      };
+      
+      // In a real app, you'd send the OTP via SMS service
+      console.log('Sending OTP to:', userDetails.phoneNumber);
+      
+      setPhoneVerificationStep('verify');
+      setIsVerifyingPhone(false);
+      
+      toast({
+        title: "OTP Sent",
+        description: "For testing, use OTP: 123456",
+      });
+    } catch (error) {
+      setIsVerifyingPhone(false);
+      console.error('Error sending OTP:', error);
+      toast({
+        title: "Error Sending OTP",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleVerifyPhoneOTP = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter the 6-digit OTP code.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // For testing, accept 123456 as valid OTP
+    if (otpCode !== '123456') {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter the correct OTP. For testing, use: 123456",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setPhoneVerificationStep('verified');
+    toast({
+      title: "Phone Verified",
+      description: "Your phone number has been verified successfully.",
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     console.log('Form submission started');
     
-    const requiredUserFields = ['fullName', 'email'];
+    const requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage', 'phoneNumber'];
     const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
     
-    if (!userValid) {
+    if (!userValid || !isValidDate(userDetails.birthDate)) {
       toast({
         title: "Required Information Missing",
-        description: "Please fill in all your personal details.",
+        description: "Please fill in all your personal details with a valid birth date.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (phoneVerificationStep !== 'verified') {
+      toast({
+        title: "Phone Verification Required",
+        description: "Please verify your phone number before continuing.",
         variant: "destructive"
       });
       return;
@@ -79,10 +197,10 @@ const PersonalDetails = () => {
       const profileData = {
         user_id: null, // Allow null for testing
         full_name: userDetails.fullName,
-        birth_date: null,
+        birth_date: formatDateForDB(userDetails.birthDate),
         email: userDetails.email,
-        preferred_language: null,
-        phone: contextPhoneNumber,
+        preferred_language: userDetails.preferredLanguage,
+        phone: userDetails.phoneNumber,
         setup_for: forWhom as 'myself' | 'loved-one',
       };
 
@@ -93,7 +211,7 @@ const PersonalDetails = () => {
       // Store user data in context
       setUserData({
         ...userDetails,
-        phone: contextPhoneNumber,
+        phone: userDetails.phoneNumber,
         setupFor: forWhom as 'myself' | 'loved-one',
       });
 
@@ -140,35 +258,6 @@ const PersonalDetails = () => {
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   };
 
-  const isValidDate = (dateString: string) => {
-    const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
-    if (!regex.test(dateString)) return false;
-    
-    const [month, day, year] = dateString.split('/').map(Number);
-    const date = new Date(year, month - 1, day);
-    
-    return date.getFullYear() === year &&
-           date.getMonth() === month - 1 &&
-           date.getDate() === day &&
-           year >= 1900 &&
-           year <= new Date().getFullYear();
-  };
-
-  const formatDateInput = (value: string) => {
-    // Remove all non-digits
-    const digits = value.replace(/\D/g, '');
-    
-    // Format as MM/DD/YYYY
-    if (digits.length >= 8) {
-      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-    } else if (digits.length >= 4) {
-      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-    } else if (digits.length >= 2) {
-      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    }
-    return digits;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-warm-cream p-4">
       <div className="max-w-2xl mx-auto py-8">
@@ -197,6 +286,95 @@ const PersonalDetails = () => {
                   className="text-lg py-3"
                   required
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="userBirthDate" className="text-base font-medium">Date of Birth</Label>
+                <Input
+                  id="userBirthDate"
+                  value={userDetails.birthDate}
+                  onChange={(e) => {
+                    const formatted = formatDateInput(e.target.value);
+                    setUserDetails(prev => ({ ...prev, birthDate: formatted }));
+                  }}
+                  placeholder="MM/DD/YYYY"
+                  className="text-lg py-3"
+                  maxLength={10}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="userLanguage" className="text-base font-medium">Language Preference</Label>
+                <Select 
+                  value={userDetails.preferredLanguage} 
+                  onValueChange={(value) => setUserDetails(prev => ({ ...prev, preferredLanguage: value }))}
+                >
+                  <SelectTrigger className="text-lg py-3">
+                    <SelectValue placeholder="Select your preferred language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="hindi">Hindi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="userPhone" className="text-base font-medium">Phone Number</Label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      id="userPhone"
+                      type="tel"
+                      value={userDetails.phoneNumber}
+                      onChange={(e) => setUserDetails(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      placeholder="+1 (555) 123-4567"
+                      className="text-lg py-3 flex-1"
+                      disabled={phoneVerificationStep === 'verified'}
+                      required
+                    />
+                    {phoneVerificationStep === 'input' && (
+                      <Button
+                        type="button"
+                        onClick={handleSendPhoneOTP}
+                        disabled={!userDetails.phoneNumber || isVerifyingPhone}
+                        className="whitespace-nowrap"
+                      >
+                        {isVerifyingPhone ? "Sending..." : "Send OTP"}
+                      </Button>
+                    )}
+                    {phoneVerificationStep === 'verified' && (
+                      <div className="flex items-center text-green-600 font-medium">
+                        ✓ Verified
+                      </div>
+                    )}
+                  </div>
+                  
+                  {phoneVerificationStep === 'verify' && (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="Enter 6-digit OTP"
+                          className="text-lg py-3 flex-1"
+                          maxLength={6}
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleVerifyPhoneOTP}
+                          disabled={otpCode.length !== 6}
+                        >
+                          Verify
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Enter the 6-digit code sent to your phone. For testing, use: 123456
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {forWhom === 'loved-one' && (
