@@ -185,7 +185,7 @@ const PersonalDetails = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* User Details Section */}
           <Card className="p-6 bg-card/60 backdrop-blur-sm border-sage-light/30">
-            <h3 className="text-xl font-medium text-foreground mb-6">Tell us about yourself</h3>
+            <h3 className="text-xl font-medium text-foreground mb-6">Please fill your information here</h3>
             <div className="grid gap-4">
               <div>
                 <Label htmlFor="userFullName" className="text-base font-medium">Full Name</Label>
