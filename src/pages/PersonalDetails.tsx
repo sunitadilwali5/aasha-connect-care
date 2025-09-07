@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createProfile, createLovedOne, signUpUser } from "@/lib/supabase";
+import { createProfile, createLovedOne, signUpUser, getCurrentUser } from "@/lib/supabase";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
