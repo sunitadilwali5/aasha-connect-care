@@ -13,7 +13,8 @@ interface LovedOneData {
   fullName: string;
   phoneNumber: string;
   birthDate: string;
-  relationship: string;
+  preferredLanguage: string;
+  email: string;
 }
 
 interface AppContextType {

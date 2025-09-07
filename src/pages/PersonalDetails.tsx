@@ -35,7 +35,8 @@ const PersonalDetails = () => {
     fullName: "",
     phoneNumber: "",
     birthDate: "",
-    relationship: ""
+    preferredLanguage: "",
+    email: ""
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -97,7 +98,7 @@ const PersonalDetails = () => {
     }
 
     if (forWhom === 'loved-one') {
-      const requiredLovedOneFields = ['fullName', 'phoneNumber', 'relationship'];
+      const requiredLovedOneFields = ['fullName', 'phoneNumber', 'preferredLanguage', 'email'];
       const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]) && lovedOneDetails.birthDate && isValidDate(lovedOneDetails.birthDate);
       
       const caregiverValid = userDetails.relationship;
@@ -144,14 +145,16 @@ const PersonalDetails = () => {
       // Create loved one record if applicable
       if (forWhom === 'loved-one') {
         const lovedOneRecord = {
-          profile_id: profile.id,
+          user_id: null,
           full_name: lovedOneDetails.fullName,
-          phone: lovedOneDetails.phoneNumber,
           birth_date: formatDateForDB(lovedOneDetails.birthDate),
-          relationship: lovedOneDetails.relationship,
+          email: lovedOneDetails.email,
+          preferred_language: lovedOneDetails.preferredLanguage,
+          phone: lovedOneDetails.phoneNumber,
+          setup_for: 'loved-one' as 'myself' | 'loved-one',
         };
 
-        await createLovedOne(lovedOneRecord);
+        const lovedOneProfile = await createProfile(lovedOneRecord);
         setLovedOneData(lovedOneDetails);
 
         // Create caregiver record
@@ -160,10 +163,13 @@ const PersonalDetails = () => {
           phone: contextPhoneNumber || '',
           email: userDetails.email,
           relationship: userDetails.relationship,
-          loved_one_profile_id: profile.id,
+          loved_one_id: lovedOneProfile.id,
         };
 
-        await createCaregiver(caregiverRecord);
+        const caregiver = await createCaregiver(caregiverRecord);
+        
+        // Update the loved one profile with caregiver_id
+        await updateProfile(lovedOneProfile.id, { caregiver_id: caregiver.id });
 
         toast({
           title: "Profile Created Successfully",
@@ -364,23 +370,32 @@ const PersonalDetails = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="relationship" className="text-base font-medium">Relationship</Label>
+                  <Label htmlFor="lovedOneLanguage" className="text-base font-medium">Language Preference</Label>
                   <Select 
-                    value={lovedOneDetails.relationship} 
-                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, relationship: value }))}
+                    value={lovedOneDetails.preferredLanguage} 
+                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, preferredLanguage: value }))}
                   >
                     <SelectTrigger className="text-lg py-3">
-                      <SelectValue placeholder="Select your relationship" />
+                      <SelectValue placeholder="Select preferred language" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="parent">Parent</SelectItem>
-                      <SelectItem value="grandparent">Grandparent</SelectItem>
-                      <SelectItem value="spouse">Spouse</SelectItem>
-                      <SelectItem value="sibling">Sibling</SelectItem>
-                      <SelectItem value="friend">Friend</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="english">English</SelectItem>
+                      <SelectItem value="hindi">Hindi</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="lovedOneEmail" className="text-base font-medium">Email Address</Label>
+                  <Input
+                    id="lovedOneEmail"
+                    type="email"
+                    value={lovedOneDetails.email}
+                    onChange={(e) => setLovedOneDetails(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Enter their email address"
+                    className="text-lg py-3"
+                    required
+                  />
                 </div>
 
                 {forWhom === 'loved-one' && (
