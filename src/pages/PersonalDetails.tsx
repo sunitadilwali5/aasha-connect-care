@@ -1,16 +1,11 @@
 import { useState } from "react";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +16,7 @@ const PersonalDetails = () => {
   // User details
   const [userDetails, setUserDetails] = useState({
     fullName: "",
-    birthDate: null as Date | null,
+    birthDate: "",
     preferredLanguage: "",
     email: ""
   });
@@ -30,7 +25,7 @@ const PersonalDetails = () => {
   const [lovedOneDetails, setLovedOneDetails] = useState({
     fullName: "",
     phoneNumber: "",
-    birthDate: null as Date | null,
+    birthDate: "",
     relationship: ""
   });
 
@@ -40,12 +35,12 @@ const PersonalDetails = () => {
     e.preventDefault();
     
     const requiredUserFields = ['fullName', 'preferredLanguage', 'email'];
-    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && userDetails.birthDate;
+    const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && userDetails.birthDate && isValidDate(userDetails.birthDate);
     
     if (!userValid) {
       toast({
         title: "Required Information Missing",
-        description: "Please fill in all your personal details.",
+        description: "Please fill in all your personal details with a valid birth date (MM/DD/YYYY).",
         variant: "destructive"
       });
       return;
@@ -53,12 +48,12 @@ const PersonalDetails = () => {
 
     if (forWhom === 'loved-one') {
       const requiredLovedOneFields = ['fullName', 'phoneNumber', 'relationship'];
-      const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]) && lovedOneDetails.birthDate;
+      const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]) && lovedOneDetails.birthDate && isValidDate(lovedOneDetails.birthDate);
       
       if (!lovedOneValid) {
         toast({
           title: "Required Information Missing",
-          description: "Please fill in all details for your loved one.",
+          description: "Please fill in all details for your loved one with a valid birth date (MM/DD/YYYY).",
           variant: "destructive"
         });
         return;
@@ -82,6 +77,34 @@ const PersonalDetails = () => {
     }, 2000);
   };
 
+  const isValidDate = (dateString: string) => {
+    const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
+    if (!regex.test(dateString)) return false;
+    
+    const [month, day, year] = dateString.split('/').map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    return date.getFullYear() === year &&
+           date.getMonth() === month - 1 &&
+           date.getDate() === day &&
+           year >= 1900 &&
+           year <= new Date().getFullYear();
+  };
+
+  const formatDateInput = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as MM/DD/YYYY
+    if (digits.length >= 8) {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    } else if (digits.length >= 4) {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    } else if (digits.length >= 2) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    return digits;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-warm-cream p-4">
@@ -115,32 +138,18 @@ const PersonalDetails = () => {
 
               <div>
                 <Label htmlFor="userBirthDate" className="text-base font-medium">Birth Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal text-lg py-3",
-                        !userDetails.birthDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {lovedOneDetails.birthDate ? format(lovedOneDetails.birthDate, "MM/dd/yyyy") : <span>MM/DD/YYYY</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={userDetails.birthDate || undefined}
-                      onSelect={(date) => setUserDetails(prev => ({ ...prev, birthDate: date || null }))}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Input
+                  id="userBirthDate"
+                  value={userDetails.birthDate}
+                  onChange={(e) => {
+                    const formatted = formatDateInput(e.target.value);
+                    setUserDetails(prev => ({ ...prev, birthDate: formatted }));
+                  }}
+                  placeholder="MM/DD/YYYY"
+                  className="text-lg py-3"
+                  maxLength={10}
+                  required
+                />
               </div>
 
               <div>
@@ -206,32 +215,18 @@ const PersonalDetails = () => {
 
                 <div>
                   <Label htmlFor="lovedOneBirthDate" className="text-base font-medium">Birth Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal text-lg py-3",
-                          !lovedOneDetails.birthDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {lovedOneDetails.birthDate ? format(lovedOneDetails.birthDate, "MM/dd/yyyy") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={lovedOneDetails.birthDate || undefined}
-                        onSelect={(date) => setLovedOneDetails(prev => ({ ...prev, birthDate: date || null }))}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    id="lovedOneBirthDate"
+                    value={lovedOneDetails.birthDate}
+                    onChange={(e) => {
+                      const formatted = formatDateInput(e.target.value);
+                      setLovedOneDetails(prev => ({ ...prev, birthDate: formatted }));
+                    }}
+                    placeholder="MM/DD/YYYY"
+                    className="text-lg py-3"
+                    maxLength={10}
+                    required
+                  />
                 </div>
 
                 <div>
