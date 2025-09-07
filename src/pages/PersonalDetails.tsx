@@ -125,7 +125,7 @@ const PersonalDetails = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {userDetails.birthDate ? format(userDetails.birthDate, "PPP") : <span>Pick a date</span>}
+                      {userDetails.birthDate ? format(userDetails.birthDate, "MM/dd/yyyy") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -217,7 +217,7 @@ const PersonalDetails = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {lovedOneDetails.birthDate ? format(lovedOneDetails.birthDate, "PPP") : <span>Pick a date</span>}
+                        {lovedOneDetails.birthDate ? format(lovedOneDetails.birthDate, "MM/dd/yyyy") : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
