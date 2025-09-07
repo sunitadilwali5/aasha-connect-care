@@ -4,6 +4,7 @@ import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 export type Profile = Tables<'profiles'>;
 export type LovedOne = Tables<'loved_ones'>;
 export type PhoneVerification = Tables<'phone_verifications'>;
+export type Caregiver = Tables<'caregivers'>;
 
 // Simple profile creation that works without authentication
 export const createProfile = async (profileData: Omit<TablesInsert<'profiles'>, 'user_id'> & { user_id?: string | null }) => {
@@ -71,6 +72,25 @@ export const createLovedOne = async (lovedOneData: TablesInsert<'loved_ones'>) =
   }
 
   console.log('Loved one created successfully:', data);
+  return data;
+};
+
+// Caregiver operations
+export const createCaregiver = async (caregiverData: TablesInsert<'caregivers'>) => {
+  console.log('Creating caregiver with data:', caregiverData);
+  
+  const { data, error } = await supabase
+    .from('caregivers')
+    .insert(caregiverData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating caregiver:', error);
+    throw error;
+  }
+
+  console.log('Caregiver created successfully:', data);
   return data;
 };
 

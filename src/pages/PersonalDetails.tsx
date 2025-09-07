@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createProfile, createLovedOne, testConnection, createPhoneVerification } from "@/lib/supabase";
+import { createProfile, createLovedOne, createCaregiver, testConnection, createPhoneVerification } from "@/lib/supabase";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -26,7 +26,8 @@ const PersonalDetails = () => {
     fullName: "",
     email: "",
     birthDate: "",
-    preferredLanguage: ""
+    preferredLanguage: "",
+    relationship: ""
   });
 
   // Loved one details (if applicable)
@@ -89,10 +90,12 @@ const PersonalDetails = () => {
       const requiredLovedOneFields = ['fullName', 'phoneNumber', 'relationship'];
       const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]) && lovedOneDetails.birthDate && isValidDate(lovedOneDetails.birthDate);
       
-      if (!lovedOneValid) {
+      const caregiverValid = userDetails.relationship;
+      
+      if (!lovedOneValid || !caregiverValid) {
         toast({
           title: "Required Information Missing",
-          description: "Please fill in all details for your loved one with a valid birth date (MM/DD/YYYY).",
+          description: "Please fill in all details including your relationship to your loved one.",
           variant: "destructive"
         });
         return;
@@ -141,6 +144,17 @@ const PersonalDetails = () => {
         await createLovedOne(lovedOneRecord);
         setLovedOneData(lovedOneDetails);
 
+        // Create caregiver record
+        const caregiverRecord = {
+          full_name: userDetails.fullName,
+          phone: contextPhoneNumber || '',
+          email: userDetails.email,
+          relationship: userDetails.relationship,
+          loved_one_profile_id: profile.id,
+        };
+
+        await createCaregiver(caregiverRecord);
+
         toast({
           title: "Profile Created Successfully",
           description: `Profile created for ${lovedOneDetails.fullName}.`,
@@ -187,7 +201,9 @@ const PersonalDetails = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* User Details Section */}
           <Card className="p-6 bg-card/60 backdrop-blur-sm border-sage-light/30">
-            <h3 className="text-xl font-medium text-foreground mb-6">Please fill your information here</h3>
+            <h3 className="text-xl font-medium text-foreground mb-6">
+              {forWhom === 'loved-one' ? 'Please share your information' : 'Please fill your information here'}
+            </h3>
             <div className="grid gap-4">
               <div>
                 <Label htmlFor="userFullName" className="text-base font-medium">Full Name</Label>
@@ -249,6 +265,44 @@ const PersonalDetails = () => {
                   </div>
                 </div>
               </div>
+
+              {forWhom === 'loved-one' && (
+                <div>
+                  <Label htmlFor="caregiverPhone" className="text-base font-medium">Phone Number</Label>
+                  <Input
+                    id="caregiverPhone"
+                    type="tel"
+                    value={contextPhoneNumber || ''}
+                    placeholder="+1 (555) 123-4567"
+                    className="text-lg py-3"
+                    disabled={true}
+                    required
+                  />
+                </div>
+              )}
+
+              {forWhom === 'loved-one' && (
+                <div>
+                  <Label htmlFor="caregiverRelationship" className="text-base font-medium">Your Relationship to Loved One</Label>
+                  <Select 
+                    value={userDetails.relationship || ''} 
+                    onValueChange={(value) => setUserDetails(prev => ({ ...prev, relationship: value }))}
+                  >
+                    <SelectTrigger className="text-lg py-3">
+                      <SelectValue placeholder="Select your relationship" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="child">Child</SelectItem>
+                      <SelectItem value="grandchild">Grandchild</SelectItem>
+                      <SelectItem value="spouse">Spouse</SelectItem>
+                      <SelectItem value="sibling">Sibling</SelectItem>
+                      <SelectItem value="friend">Friend</SelectItem>
+                      <SelectItem value="caregiver">Caregiver</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="userEmail" className="text-base font-medium">Email Address</Label>
