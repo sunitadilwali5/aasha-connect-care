@@ -423,7 +423,9 @@ const PersonalDetails = () => {
                 {forWhom === 'loved-one' && (
                   <div className="bg-terracotta/10 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Note:</strong> A verification code will be sent to your loved one's phone number to confirm their consent for AI voice calls.
+                      <strong>Note:</strong> This phone number needs to be verified. The person who owns this number should kindly respond with a "Yes" within 48 hours. If it is not verified, I will send you a reminder.
+                      <br /><br />
+                      Thanks so much for your support in bringing more joy to your loved ones. You really are such a caring person! 💖
                     </p>
                   </div>
                 )}
