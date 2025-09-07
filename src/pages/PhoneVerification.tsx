@@ -40,7 +40,7 @@ const PhoneVerification = () => {
       setIsLoading(false);
       toast({
         title: "Verification Code Sent",
-        description: "Please check your phone for the verification code.",
+        description: "For testing, use verification code: 123123",
       });
       navigate(`/verify-otp?phone=${encodeURIComponent(phoneNumber)}&for=${forWhom}`);
     }, 2000);

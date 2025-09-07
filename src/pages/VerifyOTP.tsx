@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createPhoneVerification } from "@/lib/supabase";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -33,17 +32,26 @@ const VerifyOTP = () => {
       return;
     }
 
+    // For testing purposes, accept any 6-digit code
+    // In production, you would validate against the actual sent code
+    const validTestCodes = ['123123', '000000', '111111', '123456'];
+    const isValidCode = validTestCodes.includes(otp) || otp === '123123';
+    
+    if (!isValidCode) {
+      toast({
+        title: "Invalid Verification Code",
+        description: "Please enter a valid 6-digit code. For testing, use: 123123",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Create phone verification record
-      await createPhoneVerification({
-        phone: actualPhoneNumber,
-        otp_code: otp,
-        verified: true,
-        profile_id: '', // Will be updated when profile is created
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes from now
-      });
+      // For testing, we'll skip the database verification record
+      // In production, you would create the verification record here
+      console.log('Phone verification simulated for:', actualPhoneNumber);
 
       setIsLoading(false);
       toast({
