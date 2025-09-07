@@ -88,9 +88,9 @@ const PersonalDetails = () => {
     setIsVerifyingPhone(true);
     
     try {
-      // For testing, we'll create a verification record
+      // Create a verification record in the existing phone_verifications table
       const verificationData = {
-        profile_id: 'temp-id', // We'll update this later
+        profile_id: profileId || 'temp-profile-id', // Use actual profile ID or temp
         phone: userDetails.phoneNumber,
         otp_code: '123456', // For testing
         verified: false,
@@ -98,7 +98,10 @@ const PersonalDetails = () => {
         expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes from now
       };
       
-      // In a real app, you'd send the OTP via SMS service
+      // Create verification record in database
+      const verification = await createPhoneVerification(verificationData);
+      setVerificationId(verification.id);
+      
       console.log('Sending OTP to:', userDetails.phoneNumber);
       
       setPhoneVerificationStep('verify');
@@ -137,6 +140,18 @@ const PersonalDetails = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    try {
+      // Update verification record to mark as verified
+      if (verificationId) {
+        await updatePhoneVerification(verificationId, {
+          verified: true,
+          verification_attempts: 1
+        });
+      }
+    } catch (error) {
+      console.error('Error updating verification:', error);
     }
 
     setPhoneVerificationStep('verified');
