@@ -125,7 +125,7 @@ const PersonalDetails = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {userDetails.birthDate ? format(userDetails.birthDate, "MM/dd/yyyy") : <span>Pick a date</span>}
+                      {lovedOneDetails.birthDate ? format(lovedOneDetails.birthDate, "MM/dd/yyyy") : <span>MM/DD/YYYY</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -155,7 +155,6 @@ const PersonalDetails = () => {
                   <SelectContent className="bg-background border border-border shadow-lg z-50">
                     <SelectItem value="english">English</SelectItem>
                     <SelectItem value="hindi">Hindi</SelectItem>
-                    <SelectItem value="gujarati">Gujarati</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
