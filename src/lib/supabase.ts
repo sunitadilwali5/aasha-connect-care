@@ -2,7 +2,6 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 export type Profile = Tables<'profiles'>;
-export type LovedOne = Tables<'loved_ones'>;
 export type PhoneVerification = Tables<'phone_verifications'>;
 export type Caregiver = Tables<'caregivers'>;
 
@@ -53,25 +52,6 @@ export const getProfile = async (id: string) => {
     throw error;
   }
 
-  return data;
-};
-
-// Loved ones operations
-export const createLovedOne = async (lovedOneData: TablesInsert<'loved_ones'>) => {
-  console.log('Creating loved one with data:', lovedOneData);
-  
-  const { data, error } = await supabase
-    .from('loved_ones')
-    .insert(lovedOneData)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating loved one:', error);
-    throw error;
-  }
-
-  console.log('Loved one created successfully:', data);
   return data;
 };
 
