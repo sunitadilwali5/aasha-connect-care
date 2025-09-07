@@ -75,38 +75,31 @@ const PersonalDetails = () => {
     
     console.log('Form submission started');
     
-    let requiredUserFields: string[];
-    let userValid: boolean;
-    
     if (forWhom === 'myself') {
-      requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage'];
-      userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && isValidDate(userDetails.birthDate);
+      const requiredUserFields = ['fullName', 'email', 'birthDate', 'preferredLanguage'];
+      const userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]) && isValidDate(userDetails.birthDate);
+      
+      if (!userValid) {
+        toast({
+          title: "Required Information Missing",
+          description: "Please fill in all your personal details with a valid birth date (MM/DD/YYYY).",
+          variant: "destructive"
+        });
+        return;
+      }
     } else {
-      requiredUserFields = ['fullName', 'email', 'relationship'];
-      userValid = requiredUserFields.every(field => userDetails[field as keyof typeof userDetails]);
-    }
-    
-    if (!userValid) {
-      toast({
-        title: "Required Information Missing",
-        description: forWhom === 'myself' 
-          ? "Please fill in all your personal details with a valid birth date (MM/DD/YYYY)."
-          : "Please fill in all required fields including your relationship to your loved one.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (forWhom === 'loved-one') {
+      // Validate caregiver details
+      const requiredCaregiverFields = ['fullName', 'email', 'relationship'];
+      const caregiverValid = requiredCaregiverFields.every(field => userDetails[field as keyof typeof userDetails]);
+      
+      // Validate loved one details
       const requiredLovedOneFields = ['fullName', 'phoneNumber', 'preferredLanguage', 'email'];
       const lovedOneValid = requiredLovedOneFields.every(field => lovedOneDetails[field as keyof typeof lovedOneDetails]) && lovedOneDetails.birthDate && isValidDate(lovedOneDetails.birthDate);
-      
-      const caregiverValid = userDetails.relationship;
       
       if (!lovedOneValid || !caregiverValid) {
         toast({
           title: "Required Information Missing",
-          description: "Please fill in all details including your relationship to your loved one.",
+          description: "Please fill in all details for both you and your loved one.",
           variant: "destructive"
         });
         return;
@@ -120,7 +113,7 @@ const PersonalDetails = () => {
       const connectionTest = await testConnection();
       console.log('Database connection test result:', connectionTest);
 
-      // Create profile
+      if (forWhom === 'myself') {
       const profileData = {
         user_id: null, // Allow null for testing
         full_name: userDetails.fullName,
@@ -132,6 +125,7 @@ const PersonalDetails = () => {
       };
 
       console.log('Creating profile with data:', profileData);
+        
       const profile = await createProfile(profileData);
       setProfileId(profile.id);
 
@@ -142,8 +136,11 @@ const PersonalDetails = () => {
         setupFor: forWhom as 'myself' | 'loved-one',
       });
 
-      // Create loved one record if applicable
-      if (forWhom === 'loved-one') {
+        toast({
+          title: "Profile Created Successfully",
+          description: "Your profile has been created successfully.",
+        });
+      } else {
         const lovedOneRecord = {
           user_id: null,
           full_name: lovedOneDetails.fullName,
@@ -157,7 +154,7 @@ const PersonalDetails = () => {
         const lovedOneProfile = await createProfile(lovedOneRecord);
         setLovedOneData(lovedOneDetails);
 
-        // Create caregiver record
+        // Create caregiver record with caregiver's information
         const caregiverRecord = {
           full_name: userDetails.fullName,
           phone: contextPhoneNumber || '',
@@ -168,17 +165,12 @@ const PersonalDetails = () => {
 
         const caregiver = await createCaregiver(caregiverRecord);
         
-        // Update the loved one profile with caregiver_id
+        // Update the loved one profile with caregiver reference
         await updateProfile(lovedOneProfile.id, { caregiver_id: caregiver.id });
 
         toast({
           title: "Profile Created Successfully",
           description: `Profile created for ${lovedOneDetails.fullName}.`,
-        });
-      } else {
-        toast({
-          title: "Profile Created Successfully",
-          description: "Your profile has been created successfully.",
         });
       }
 

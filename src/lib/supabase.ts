@@ -110,7 +110,7 @@ export const updatePhoneVerification = async (id: string, updates: Partial<Table
 };
 
 // Payment operations
-export const createPayment = async (paymentData: TablesInsert<'payments'>) => {
+export const createPayment = async (paymentData: Partial<TablesInsert<'payments'>>) => {
   console.log('Creating payment with data:', paymentData);
   
   const { data, error } = await supabase
