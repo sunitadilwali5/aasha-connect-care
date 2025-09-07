@@ -114,22 +114,26 @@ const PersonalDetails = () => {
       // Test database connection first
       const connectionTest = await testConnection();
       console.log('Database connection test result:', connectionTest);
+      
+      if (!connectionTest) {
+        throw new Error('Database connection failed. Please check your internet connection and try again.');
+      }
 
       if (forWhom === 'myself') {
-      const profileData = {
-        user_id: null, // Allow null for testing
-        full_name: userDetails.fullName,
-        birth_date: forWhom === 'myself' ? formatDateForDB(userDetails.birthDate) : null,
-        email: userDetails.email,
-        preferred_language: forWhom === 'myself' ? userDetails.preferredLanguage : null,
-        phone: contextPhoneNumber || null,
-        setup_for: forWhom as 'myself' | 'loved-one',
-      };
+        const profileData = {
+          user_id: null, // Allow null for testing
+          full_name: userDetails.fullName,
+          birth_date: formatDateForDB(userDetails.birthDate),
+          email: userDetails.email,
+          preferred_language: userDetails.preferredLanguage,
+          phone: contextPhoneNumber || null,
+          setup_for: forWhom as 'myself' | 'loved-one',
+        };
 
-      console.log('Creating profile with data:', profileData);
+        console.log('Creating profile with data:', profileData);
         
-      const profile = await createProfile(profileData);
-      setProfileId(profile.id);
+        const profile = await createProfile(profileData);
+        setProfileId(profile.id);
 
       // Create phone verification record for profile
       if (contextPhoneNumber) {
@@ -196,6 +200,12 @@ const PersonalDetails = () => {
     } catch (error) {
       setIsLoading(false);
       console.error('Error creating profile:', error);
+      console.error('Full error details:', {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code
+      });
 
       // Create phone verification record for caregiver
       if (contextPhoneNumber && caregiver) {

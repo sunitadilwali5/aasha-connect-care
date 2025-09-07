@@ -9,6 +9,11 @@ export type Caregiver = Tables<'caregivers'>;
 export const createProfile = async (profileData: Omit<TablesInsert<'profiles'>, 'user_id'> & { user_id?: string | null }) => {
   console.log('Creating profile with data:', profileData);
   
+  // Validate required fields
+  if (!profileData.full_name || !profileData.email) {
+    throw new Error('Full name and email are required');
+  }
+  
   const { data, error } = await supabase
     .from('profiles')
     .insert(profileData)
@@ -17,6 +22,7 @@ export const createProfile = async (profileData: Omit<TablesInsert<'profiles'>, 
 
   if (error) {
     console.error('Error creating profile:', error);
+    console.error('Profile data that failed:', profileData);
     throw error;
   }
 
@@ -171,13 +177,15 @@ export const getCurrentUser = async () => {
 // Test database connection
 export const testConnection = async () => {
   try {
+    console.log('Testing database connection...');
     const { data, error } = await supabase
       .from('profiles')
-      .select('count')
+      .select('id')
       .limit(1);
     
     if (error) {
       console.error('Database connection test failed:', error);
+      console.error('Error details:', error.message, error.details, error.hint);
       return false;
     }
     
