@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
 
 const Payment = () => {
   const [paymentDetails, setPaymentDetails] = useState({
@@ -22,6 +23,7 @@ const Payment = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { userData, lovedOneData, profileId } = useAppContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,16 +41,38 @@ const Payment = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
+
+    try {
+      // Here you would integrate with actual payment processing
+      // For now, we'll simulate successful payment
+      
+      // You could create a payment record in Supabase here
+      // const paymentData = {
+      //   profile_id: profileId,
+      //   amount: 9.99,
+      //   payment_method: 'card',
+      //   status: 'completed'
+      // };
+      
+      console.log('Processing payment for profile:', profileId);
+      console.log('User data:', userData);
+      console.log('Loved one data:', lovedOneData);
+      
       setIsLoading(false);
       toast({
-        title: "Welcome to Aasha! 🎉",
-        description: "Your payment was successful. You'll receive a call from Aasha within 24 hours.",
+        title: "Welcome to Meela! 🎉",
+        description: "Your payment was successful. You'll receive a call from Meela within 24 hours.",
       });
       navigate('/welcome-success');
-    }, 3000);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Failed",
+        description: "There was an error processing your payment. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const months = Array.from({ length: 12 }, (_, i) => ({

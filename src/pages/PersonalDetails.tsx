@@ -6,12 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
+import { createProfile, createLovedOne, signUpUser } from "@/lib/supabase";
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
   const forWhom = searchParams.get('for') || 'myself';
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { 
+    setUserData, 
+    setLovedOneData, 
+    phoneNumber: contextPhoneNumber,
+    setProfileId 
+  } = useAppContext();
 
   // User details
   const [userDetails, setUserDetails] = useState({
@@ -61,20 +69,77 @@ const PersonalDetails = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate saving details
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      // Create user account
+      const tempPassword = Math.random().toString(36).slice(-8);
+      const authResult = await signUpUser(userDetails.email, tempPassword);
       
+      if (!authResult.user) {
+        throw new Error('Failed to create user account');
+      }
+
+      // Create profile
+      const profileData = {
+        user_id: authResult.user.id,
+        full_name: userDetails.fullName,
+        birth_date: formatDateForDB(userDetails.birthDate),
+        email: userDetails.email,
+        preferred_language: userDetails.preferredLanguage,
+        phone: contextPhoneNumber,
+        setup_for: forWhom as 'myself' | 'loved-one',
+      };
+
+      const profile = await createProfile(profileData);
+      setProfileId(profile.id);
+
+      // Store user data in context
+      setUserData({
+        ...userDetails,
+        phone: contextPhoneNumber,
+        setupFor: forWhom as 'myself' | 'loved-one',
+      });
+
+      // Create loved one record if applicable
       if (forWhom === 'loved-one') {
+        const lovedOneRecord = {
+          profile_id: profile.id,
+          full_name: lovedOneDetails.fullName,
+          phone: lovedOneDetails.phoneNumber,
+          birth_date: formatDateForDB(lovedOneDetails.birthDate),
+          relationship: lovedOneDetails.relationship,
+        };
+
+        await createLovedOne(lovedOneRecord);
+        setLovedOneData(lovedOneDetails);
+
         toast({
-          title: "Verification Code Sent",
-          description: `A verification code has been sent to ${lovedOneDetails.fullName} at ${lovedOneDetails.phoneNumber}.`,
+          title: "Profile Created Successfully",
+          description: `Profile created for ${lovedOneDetails.fullName}.`,
+        });
+      } else {
+        toast({
+          title: "Profile Created Successfully",
+          description: "Your profile has been created successfully.",
         });
       }
-      
+
+      setIsLoading(false);
       navigate('/privacy-policy');
-    }, 2000);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Error creating profile:', error);
+      toast({
+        title: "Error Creating Profile",
+        description: "There was an error creating your profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const formatDateForDB = (dateString: string) => {
+    const [month, day, year] = dateString.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   };
 
   const isValidDate = (dateString: string) => {

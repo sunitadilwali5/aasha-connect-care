@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
 
 const PhoneVerification = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -15,6 +16,7 @@ const PhoneVerification = () => {
   const [searchParams] = useSearchParams();
   const forWhom = searchParams.get('for') || 'myself';
   const { toast } = useToast();
+  const { setPhoneNumber: setContextPhoneNumber } = useAppContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +31,9 @@ const PhoneVerification = () => {
     }
 
     setIsLoading(true);
+    
+    // Store phone number in context
+    setContextPhoneNumber(phoneNumber);
     
     // Simulate sending verification code
     setTimeout(() => {

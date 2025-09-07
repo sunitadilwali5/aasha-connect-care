@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/contexts/AppContext";
+import { createPhoneVerification } from "@/lib/supabase";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -14,6 +16,10 @@ const VerifyOTP = () => {
   const phoneNumber = searchParams.get('phone') || '';
   const forWhom = searchParams.get('for') || 'myself';
   const { toast } = useToast();
+  const { phoneNumber: contextPhoneNumber } = useAppContext();
+  
+  // Use phone number from context if available, otherwise from URL params
+  const actualPhoneNumber = contextPhoneNumber || phoneNumber;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,16 +34,32 @@ const VerifyOTP = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate OTP verification
-    setTimeout(() => {
+
+    try {
+      // Create phone verification record
+      await createPhoneVerification({
+        phone: actualPhoneNumber,
+        otp_code: otp,
+        verified: true,
+        profile_id: '', // Will be updated when profile is created
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes from now
+      });
+
       setIsLoading(false);
       toast({
         title: "Phone Verified Successfully",
         description: "Your phone number has been confirmed.",
       });
       navigate(`/personal-details?for=${forWhom}`);
-    }, 1500);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Error verifying phone:', error);
+      toast({
+        title: "Verification Failed",
+        description: "There was an error verifying your phone number. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const resendCode = () => {
@@ -56,7 +78,7 @@ const VerifyOTP = () => {
             Enter Verification Code
           </h2>
           <p className="text-muted-foreground">
-            We sent a 6-digit code to {phoneNumber}
+            We sent a 6-digit code to {actualPhoneNumber}
           </p>
         </div>
 
