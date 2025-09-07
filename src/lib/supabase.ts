@@ -7,6 +7,12 @@ export type PhoneVerification = Tables<'phone_verifications'>;
 
 // Profile operations
 export const createProfile = async (profileData: TablesInsert<'profiles'>) => {
+  // Ensure user is authenticated before creating profile
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User must be authenticated to create profile');
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .insert(profileData)

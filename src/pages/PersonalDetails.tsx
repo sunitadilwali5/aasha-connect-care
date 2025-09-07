@@ -71,17 +71,23 @@ const PersonalDetails = () => {
     setIsLoading(true);
 
     try {
-      // Create user account
-      const tempPassword = Math.random().toString(36).slice(-8);
-      const authResult = await signUpUser(userDetails.email, tempPassword);
+      // Check if user is already authenticated
+      let currentUser = await getCurrentUser();
       
-      if (!authResult.user) {
-        throw new Error('Failed to create user account');
+      if (!currentUser) {
+        // Create user account only if not already authenticated
+        const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+        const authResult = await signUpUser(userDetails.email, tempPassword);
+        
+        if (!authResult.user) {
+          throw new Error('Failed to create user account');
+        }
+        currentUser = authResult.user;
       }
 
       // Create profile
       const profileData = {
-        user_id: authResult.user.id,
+        user_id: currentUser.id,
         full_name: userDetails.fullName,
         birth_date: formatDateForDB(userDetails.birthDate),
         email: userDetails.email,
@@ -129,11 +135,39 @@ const PersonalDetails = () => {
     } catch (error) {
       setIsLoading(false);
       console.error('Error creating profile:', error);
-      toast({
-        title: "Error Creating Profile",
-        description: "There was an error creating your profile. Please try again.",
-        variant: "destructive"
-      });
+      
+      // Handle specific error types
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errorMessage.includes('rate_limit') || errorMessage.includes('49 seconds')) {
+        toast({
+          title: "Too Many Attempts",
+          description: "Please wait a moment before trying again. This helps keep our service secure.",
+          variant: "destructive"
+        });
+      } else if (errorMessage.includes('row-level security') || errorMessage.includes('42501')) {
+        toast({
+          title: "Authentication Issue",
+          description: "There was a problem with your account setup. Please try refreshing the page.",
+          variant: "destructive"
+        });
+      } else if (errorMessage.includes('User already registered')) {
+        // If user already exists, try to continue with existing user
+        toast({
+          title: "Account Exists",
+          description: "An account with this email already exists. Continuing with existing account.",
+        });
+        // Try to continue without creating new user
+        setTimeout(() => {
+          navigate('/privacy-policy');
+        }, 2000);
+      } else {
+        toast({
+          title: "Error Creating Profile",
+          description: "There was an error creating your profile. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
