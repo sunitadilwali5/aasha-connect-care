@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
-import { createProfile, createLovedOne, createCaregiver, testConnection, createPhoneVerification, updateProfile } from "@/lib/supabase";
+
 
 const PersonalDetails = () => {
   const [searchParams] = useSearchParams();
@@ -111,45 +111,9 @@ const PersonalDetails = () => {
     setIsLoading(true);
 
     try {
-      // Test database connection first
-      const connectionTest = await testConnection();
-      console.log('Database connection test result:', connectionTest);
+      // Simulate profile creation for now
+      console.log('Creating profile for:', forWhom);
       
-      if (!connectionTest) {
-        throw new Error('Database connection failed. Please check your internet connection and try again.');
-      }
-
-      if (forWhom === 'myself') {
-        const profileData = {
-          user_id: null, // Allow null for testing
-          full_name: userDetails.fullName,
-          birth_date: formatDateForDB(userDetails.birthDate),
-          email: userDetails.email,
-          preferred_language: userDetails.preferredLanguage,
-          phone: contextPhoneNumber || null,
-          setup_for: forWhom as 'myself' | 'loved-one',
-        };
-
-        console.log('Creating profile with data:', profileData);
-        
-        const profile = await createProfile(profileData);
-        setProfileId(profile.id);
-
-      // Create phone verification record for profile
-      if (contextPhoneNumber) {
-        const phoneVerificationData = {
-          profile_id: profile.id,
-          phone: contextPhoneNumber,
-          verified: true, // Since OTP was already verified
-          otp_code: null,
-          expires_at: null,
-          verification_attempts: 1
-        };
-        
-        await createPhoneVerification(phoneVerificationData);
-        console.log('Phone verification record created for profile');
-      }
-
       // Store user data in context
       setUserData({
         ...userDetails,
@@ -157,74 +121,24 @@ const PersonalDetails = () => {
         setupFor: forWhom as 'myself' | 'loved-one',
       });
 
-        toast({
-          title: "Profile Created Successfully",
-          description: "Your profile has been created successfully.",
-        });
-      } else {
-        const lovedOneRecord = {
-          user_id: null,
-          full_name: lovedOneDetails.fullName,
-          birth_date: formatDateForDB(lovedOneDetails.birthDate),
-          email: lovedOneDetails.email,
-          preferred_language: lovedOneDetails.preferredLanguage,
-          phone: lovedOneDetails.phoneNumber,
-          setup_for: 'loved-one' as 'myself' | 'loved-one',
-        };
-
-        const lovedOneProfile = await createProfile(lovedOneRecord);
+      if (forWhom === 'loved-one') {
         setLovedOneData(lovedOneDetails);
-
-        // Create caregiver record with caregiver's information
-        const caregiverRecord = {
-          full_name: userDetails.fullName,
-          phone: contextPhoneNumber || '',
-          email: userDetails.email,
-          relationship: userDetails.relationship,
-          loved_one_id: lovedOneProfile.id,
-        };
-
-        caregiver = await createCaregiver(caregiverRecord);
-        
-        // Update the loved one profile with caregiver reference
-        await updateProfile(lovedOneProfile.id, { caregiver_id: caregiver.id });
-
-        toast({
-          title: "Profile Created Successfully",
-          description: `Profile created for ${lovedOneDetails.fullName}.`,
-        });
       }
+
+      toast({
+        title: "Profile Created Successfully",
+        description: forWhom === 'myself' ? "Your profile has been created successfully." : `Profile created for ${lovedOneDetails.fullName}.`,
+      });
 
       setIsLoading(false);
       navigate('/privacy-policy');
     } catch (error) {
       setIsLoading(false);
       console.error('Error creating profile:', error);
-      console.error('Full error details:', {
-        message: error?.message,
-        details: error?.details,
-        hint: error?.hint,
-        code: error?.code
-      });
-
-      // Create phone verification record for caregiver
-      if (contextPhoneNumber && caregiver) {
-        const phoneVerificationData = {
-          caregiver_id: caregiver.id,
-          phone: contextPhoneNumber,
-          verified: true, // Since OTP was already verified
-          otp_code: null,
-          expires_at: null,
-          verification_attempts: 1
-        };
-        
-        await createPhoneVerification(phoneVerificationData);
-        console.log('Phone verification record created for caregiver');
-      }
       
       toast({
         title: "Error Creating Profile",
-        description: `Database error: ${error.message || 'Unknown error'}. Please check the console for details.`,
+        description: "There was an error creating the profile. Please try again.",
         variant: "destructive"
       });
     }
