@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { createPayment } from "@/lib/supabase";
 
 
 const Payment = () => {
@@ -44,8 +45,30 @@ const Payment = () => {
     setIsLoading(true);
 
     try {
-      // Simulate payment processing for now
-      console.log('Processing payment for:', userData?.setupFor);
+      // Create payment record - link to caregiver if setting up for loved one, otherwise to profile
+      if (userData?.setupFor === 'loved-one') {
+        // For loved one setup, payment is made by caregiver
+        const paymentData = {
+          caregiver_id: profileId, // This will be the caregiver ID in this case
+          amount: 9.99,
+          payment_method: 'card',
+          status: 'completed'
+        };
+        
+        await createPayment(paymentData);
+        console.log('Payment record created for caregiver');
+      } else if (profileId) {
+        // For myself setup, payment is linked to profile
+        const paymentData = {
+          profile_id: profileId,
+          amount: 9.99,
+          payment_method: 'card',
+          status: 'completed'
+        };
+        
+        await createPayment(paymentData);
+        console.log('Payment record created for profile');
+      }
       
       setIsLoading(false);
       toast({
