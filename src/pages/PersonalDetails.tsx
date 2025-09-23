@@ -28,6 +28,7 @@ const PersonalDetails = () => {
     email: "",
     birthDate: "",
     preferredLanguage: "",
+    gender: "",
     relationship: ""
   });
 
@@ -37,6 +38,7 @@ const PersonalDetails = () => {
     phoneNumber: "",
     birthDate: "",
     preferredLanguage: "",
+    gender: "",
     email: ""
   });
 
@@ -127,6 +129,7 @@ const PersonalDetails = () => {
           birth_date: formatDateForDB(userDetails.birthDate),
           email: userDetails.email,
           preferred_language: userDetails.preferredLanguage,
+          gender: userDetails.gender || null,
           phone: contextPhoneNumber || null,
           setup_for: forWhom as 'myself' | 'loved-one',
         };
@@ -169,6 +172,7 @@ const PersonalDetails = () => {
           birth_date: formatDateForDB(lovedOneDetails.birthDate),
           email: lovedOneDetails.email,
           preferred_language: lovedOneDetails.preferredLanguage,
+          gender: lovedOneDetails.gender || null,
           phone: lovedOneDetails.phoneNumber,
           setup_for: 'loved-one' as 'myself' | 'loved-one',
         };
@@ -302,6 +306,24 @@ const PersonalDetails = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div>
+                    <Label htmlFor="userGender" className="text-base font-medium">Gender</Label>
+                    <Select 
+                      value={userDetails.gender} 
+                      onValueChange={(value) => setUserDetails(prev => ({ ...prev, gender: value }))}
+                    >
+                      <SelectTrigger className="text-lg py-3">
+                        <SelectValue placeholder="Select your gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </>
               )}
               <div>
@@ -417,6 +439,24 @@ const PersonalDetails = () => {
                     <SelectContent>
                       <SelectItem value="english">English</SelectItem>
                       <SelectItem value="hindi">Hindi</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="lovedOneGender" className="text-base font-medium">Gender</Label>
+                  <Select 
+                    value={lovedOneDetails.gender} 
+                    onValueChange={(value) => setLovedOneDetails(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger className="text-lg py-3">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

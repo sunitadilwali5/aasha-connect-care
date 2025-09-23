@@ -9,6 +9,7 @@ export type Profile = {
   phone: string | null;
   birth_date: string | null;
   preferred_language: string | null;
+  gender: string | null;
   setup_for: string | null;
   caregiver_id: string | null;
   created_at: string;

@@ -6,6 +6,7 @@ interface UserData {
   phone?: string;
   birthDate?: string;
   preferredLanguage?: string;
+  gender?: string;
   setupFor: 'myself' | 'loved-one';
 }
 
@@ -14,6 +15,7 @@ interface LovedOneData {
   phoneNumber: string;
   birthDate: string;
   preferredLanguage: string;
+  gender?: string;
   email: string;
 }
 
